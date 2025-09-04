@@ -12,6 +12,10 @@ import { InteractionManagement } from "@/components/interaction-management"
 import { PerformanceMetrics } from "@/components/performance-metrics"
 import { Menu, Bell, Search, Shield } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { TeamPerformance } from "@/components/team-performance"
+import { ShowroomAnalytics } from "@/components/showroom-analytics"
+import { AllEscalations } from "@/components/all-escalations"
+import { UserManagement } from "@/components/user-management"
 
 export function Dashboard() {
   const { user, logout } = useAuth()
@@ -65,6 +69,14 @@ export function Dashboard() {
       case "performance":
         console.log("[v0] Rendering PerformanceMetrics component, canViewAnalytics:", permissions.canViewAnalytics)
         return permissions.canViewAnalytics ? <PerformanceMetrics /> : <UnauthorizedView />
+      case "team-performance":
+        return permissions.canViewTeamData ? <TeamPerformance /> : <UnauthorizedView />
+      case "showroom-analytics":
+        return permissions.canViewAnalytics ? <ShowroomAnalytics /> : <UnauthorizedView />
+      case "all-escalations":
+        return permissions.canViewTeamData ? <AllEscalations /> : <UnauthorizedView />
+      case "user-management":
+        return permissions.canAccessSettings ? <UserManagement /> : <UnauthorizedView />
       case "reports":
         return permissions.canViewReports ? <ReportsView /> : <UnauthorizedView />
       case "settings":
