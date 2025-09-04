@@ -8,6 +8,7 @@ import { usePermissions, useDataFilter } from "@/hooks/use-permissions"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from "recharts"
 import { SocialShare } from "@/components/social-share"
+import { ConversationDetail } from "@/components/conversation-detail" // Added import for ConversationDetail
 import {
   Users,
   TrendingUp,
@@ -31,6 +32,12 @@ export function CustomerOverview() {
 
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
   const [selectedShowroom, setSelectedShowroom] = useState<string | null>(null)
+  const [showConversationDetail, setShowConversationDetail] = useState(false)
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null)
+  const [selectedPersonName, setSelectedPersonName] = useState<string | null>(null)
+  const [showAllPersonsConversations, setShowAllPersonsConversations] = useState(false)
+  const [showPersonOrderList, setShowPersonOrderList] = useState(false)
+  const [selectedPersonOrders, setSelectedPersonOrders] = useState<any[]>([])
 
   const countries = [
     {
@@ -112,9 +119,77 @@ export function CustomerOverview() {
       name: showroomName,
       country: countries.find((c) => c.code === countryCode)?.name,
       salesPersons: [
-        { id: 1, name: "Ahmed Hassan", followUps: 12, conversions: 3, status: "active" },
-        { id: 2, name: "Fatima Al-Zahra", followUps: 8, conversions: 5, status: "active" },
-        { id: 3, name: "Omar Khalil", followUps: 15, conversions: 2, status: "pending" },
+        {
+          id: 1,
+          name: "Ahmed Hassan",
+          followUps: 12,
+          conversions: 3,
+          status: "active",
+          orders: [
+            { id: "ORD001", customerName: "John Smith", value: "$2,500", status: "active", lastMessage: "2 hours ago" },
+            {
+              id: "ORD002",
+              customerName: "Sarah Johnson",
+              value: "$1,200",
+              status: "pending",
+              lastMessage: "1 day ago",
+            },
+            {
+              id: "ORD003",
+              customerName: "Mike Wilson",
+              value: "$3,800",
+              status: "escalated",
+              lastMessage: "3 hours ago",
+            },
+          ],
+        },
+        {
+          id: 2,
+          name: "Fatima Al-Zahra",
+          followUps: 8,
+          conversions: 5,
+          status: "active",
+          orders: [
+            { id: "ORD004", customerName: "Emma Davis", value: "$1,800", status: "active", lastMessage: "30 min ago" },
+            {
+              id: "ORD005",
+              customerName: "David Brown",
+              value: "$2,200",
+              status: "completed",
+              lastMessage: "2 days ago",
+            },
+          ],
+        },
+        {
+          id: 3,
+          name: "Omar Khalil",
+          followUps: 15,
+          conversions: 2,
+          status: "pending",
+          orders: [
+            {
+              id: "ORD006",
+              customerName: "Lisa Anderson",
+              value: "$4,200",
+              status: "pending",
+              lastMessage: "4 hours ago",
+            },
+            {
+              id: "ORD007",
+              customerName: "Robert Taylor",
+              value: "$1,600",
+              status: "active",
+              lastMessage: "1 hour ago",
+            },
+            {
+              id: "ORD008",
+              customerName: "Jennifer White",
+              value: "$2,900",
+              status: "escalated",
+              lastMessage: "6 hours ago",
+            },
+          ],
+        },
       ],
       managers: [
         { id: 1, name: "Sarah Abdullah", followUps: 25, escalations: 4, status: "active" },
@@ -298,6 +373,108 @@ export function CustomerOverview() {
     return null
   }
 
+  if (showConversationDetail) {
+    return (
+      <ConversationDetail
+        personId={selectedPersonId || undefined}
+        personName={selectedPersonName || undefined}
+        showAllPersons={showAllPersonsConversations}
+        onBack={() => {
+          setShowConversationDetail(false)
+          setSelectedPersonId(null)
+          setSelectedPersonName(null)
+          setShowAllPersonsConversations(false)
+        }}
+      />
+    )
+  }
+
+  if (showPersonOrderList && selectedPersonOrders.length > 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowPersonOrderList(false)
+              setSelectedPersonOrders([])
+              setSelectedPersonId(null)
+              setSelectedPersonName(null)
+            }}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Sales Persons
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Users className="h-6 w-6 text-primary" />
+          <div>
+            <h2 className="text-2xl font-bold">{selectedPersonName} - Order List</h2>
+            <p className="text-muted-foreground">{selectedPersonOrders.length} Active Orders</p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Customer Orders & Conversations</CardTitle>
+            <CardDescription>Click on any order to view the detailed conversation history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {selectedPersonOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <MessageCircle className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{order.customerName}</h4>
+                      <p className="text-sm text-muted-foreground">Order ID: {order.id}</p>
+                      <p className="text-xs text-muted-foreground">Last message: {order.lastMessage}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-primary">{order.value}</div>
+                      <Badge
+                        variant={
+                          order.status === "active"
+                            ? "default"
+                            : order.status === "completed"
+                              ? "secondary"
+                              : order.status === "escalated"
+                                ? "destructive"
+                                : "outline"
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setShowConversationDetail(true)
+                        setShowPersonOrderList(false)
+                      }}
+                    >
+                      View Conversation
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Conditional rendering for head office country/showroom view
   if (user?.role === "head_office" && selectedShowroom && selectedCountry) {
     const showroomDetails = getShowroomDetails(selectedCountry, selectedShowroom)
@@ -363,8 +540,21 @@ export function CustomerOverview() {
         {/* Sales Persons */}
         <Card>
           <CardHeader>
-            <CardTitle>Sales Persons Follow-up List</CardTitle>
-            <CardDescription>Individual sales person performance and follow-ups</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Sales Persons Follow-up List</CardTitle>
+                <CardDescription>Individual sales person performance and follow-ups</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAllPersonsConversations(true)
+                  setShowConversationDetail(true)
+                }}
+              >
+                View All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -376,7 +566,9 @@ export function CustomerOverview() {
                     </div>
                     <div>
                       <h4 className="font-medium">{person.name}</h4>
-                      <p className="text-sm text-muted-foreground">Sales Person</p>
+                      <p className="text-sm text-muted-foreground">
+                        Sales Person • {person.orders?.length || 0} Orders
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -385,6 +577,18 @@ export function CustomerOverview() {
                       <div className="text-sm text-muted-foreground">{person.conversions} Conversions</div>
                     </div>
                     <Badge variant={person.status === "active" ? "default" : "secondary"}>{person.status}</Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPersonId(person.id.toString())
+                        setSelectedPersonName(person.name)
+                        setSelectedPersonOrders(person.orders || [])
+                        setShowPersonOrderList(true)
+                      }}
+                    >
+                      View
+                    </Button>
                   </div>
                 </div>
               ))}
